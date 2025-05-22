@@ -53,17 +53,23 @@ def on_select(icon, item):
     countdown = int(item.text)
     start_countdown(countdown)
 
+def on_reset(icon, item):
+    start_countdown(0)
+
 def on_exit(icon, item):
     icon.stop()
 
-def on_reset(icon, item):
-    start_countdown(0)
+exit_submenu = pystray.Menu(
+    pystray.MenuItem('Confirm', on_exit)
+)
 
 options = [pystray.MenuItem(str(i), on_select) for i in list(range(60, 10, -5)) + list(range(10, 0, -1))]
 menu = pystray.Menu(
     *options,
+    pystray.Menu.SEPARATOR,
     pystray.MenuItem('Reset', on_reset),
-    pystray.MenuItem('Exit', on_exit)
+    pystray.Menu.SEPARATOR,
+    pystray.MenuItem('Exit', exit_submenu),
 )
 
 if __name__ == "__main__":
