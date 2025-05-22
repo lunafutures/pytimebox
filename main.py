@@ -1,10 +1,20 @@
 import pystray
 from PIL import Image, ImageDraw
+
+import os
+import platform
 import threading
 import time
 
 current_thread = None
 stop_event = threading.Event()
+
+def beep():
+    if platform.system() == 'Windows':
+        import winsound
+        winsound.MessageBeep()
+    else:
+        os.system('\a')
 
 def create_icon_image(number):
     size = 33
@@ -39,6 +49,8 @@ def update_icon(icon, countdown, stop_event):
     else:
         icon.icon = create_icon_image(0)
         icon.title = "Time's up!"
+        if countdown != 0:
+            beep()
 
 def start_countdown(countdown):
     global current_thread, stop_event
