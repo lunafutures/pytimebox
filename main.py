@@ -10,7 +10,8 @@ def create_icon_image(number):
     size = 33
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text((size / 2, size / 2 - 1), str(number), fill='white', anchor='mm', font_size=size - 2)
+    color = 'white' if number == 0 else 'cyan'
+    d.text((size / 2, size / 2 - 1), str(number), fill=color, anchor='mm', font_size=size - 2)
     return img
 
 def cancellable_sleep(stop_event, total_seconds, check_interval=0.1):
