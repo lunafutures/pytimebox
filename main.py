@@ -1,3 +1,6 @@
+from tendo import singleton
+me = singleton.SingleInstance() # exits if another instance is already running
+
 import pystray
 from PIL import Image, ImageDraw
 

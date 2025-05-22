@@ -1,3 +1,4 @@
 pillow==11.2.1
 pystray==0.19.5
 six==1.17.0
+tendo==0.3.0
