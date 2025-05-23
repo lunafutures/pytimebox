@@ -12,6 +12,8 @@ import time
 current_thread = None
 stop_event = threading.Event()
 
+NAGGING_INTERVAL_SEC = 10
+
 def beep():
     if platform.system() == 'Windows':
         import winsound
@@ -19,13 +21,16 @@ def beep():
     else:
         os.system('\a')
 
-def create_icon_image(number):
+def create_icon_image(number, color):
     size = 33
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    color = 'white' if number == 0 else 'cyan'
     d.text((size / 2, size / 2 - 1), str(number), fill=color, anchor='mm', font_size=size - 2)
     return img
+
+def set_icon(icon, value, color='cyan'):
+    icon.icon = create_icon_image(value, color)
+    icon.title = f"Time left: {value} min" if value > 0 else "Time's up!"
 
 def cancellable_sleep(stop_event, total_seconds, check_interval=0.1):
     """
@@ -45,15 +50,17 @@ def update_icon(icon, countdown, stop_event):
     for i in range(countdown, 0, -1):
         if stop_event.is_set():
             break
-        icon.icon = create_icon_image(i)
-        icon.title = f"Time left: {i} min"
+        set_icon(icon, i)
         if not cancellable_sleep(stop_event, 60):
             break
     else:
-        icon.icon = create_icon_image(0)
-        icon.title = "Time's up!"
         if countdown != 0:
+            set_icon(icon, 0, 'red')
             beep()
+            while cancellable_sleep(stop_event, NAGGING_INTERVAL_SEC):
+                beep()
+        else:
+            set_icon(icon, 0, 'white')
 
 def start_countdown(countdown):
     global current_thread, stop_event
@@ -79,8 +86,28 @@ exit_submenu = pystray.Menu(
     pystray.MenuItem('Confirm', on_exit)
 )
 
+last_click_time = 0
+DOUBLE_CLICK_INTERVAL = 0.5  # seconds
+
+def on_left_click(icon, item):
+    global last_click_time, current_thread, stop_event
+    now = time.time()
+    if now - last_click_time < DOUBLE_CLICK_INTERVAL:
+        # Double click detected
+        print("Resetting countdown")
+        if current_thread and current_thread.is_alive():
+            stop_event.set()
+            current_thread.join()
+        update_icon(icon, 0, stop_event)
+        last_click_time = 0  # Reset to avoid triple-clicks
+    else:
+        # Single click (but wait to see if another comes)
+        last_click_time = now
+
+
 options = [pystray.MenuItem(str(i), on_select) for i in list(range(60, 10, -5)) + list(range(10, 0, -1))]
 menu = pystray.Menu(
+    pystray.MenuItem('', on_left_click, default=True, visible=False),  # Invisible item to catch left clicks
     *options,
     pystray.Menu.SEPARATOR,
     pystray.MenuItem('Reset', on_reset),
@@ -89,5 +116,5 @@ menu = pystray.Menu(
 )
 
 if __name__ == "__main__":
-    icon = pystray.Icon("Timebox", icon=create_icon_image(0), title="Timebox", menu=menu)
+    icon = pystray.Icon("Timebox", icon=create_icon_image(0, 'white'), title="Timebox", menu=menu)
     icon.run()
