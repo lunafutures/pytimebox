@@ -17,7 +17,7 @@ NAGGING_INTERVAL_SEC = 10
 
 def shake_mouse():
     s = 2 # number of pixels to move
-    for _ in range(4):
+    for _ in range(3):
         for d in [s, -s,]:
             pyautogui.move(d, 0, duration=0)
             pyautogui.move(0, d, duration=0)
