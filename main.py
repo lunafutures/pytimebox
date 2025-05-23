@@ -3,6 +3,7 @@ me = singleton.SingleInstance() # exits if another instance is already running
 
 import pystray
 from PIL import Image, ImageDraw
+import pyautogui
 
 import os
 import platform
@@ -14,12 +15,23 @@ stop_event = threading.Event()
 
 NAGGING_INTERVAL_SEC = 10
 
+def shake_mouse():
+    s = 2 # number of pixels to move
+    for _ in range(4):
+        for d in [s, -s,]:
+            pyautogui.move(d, 0, duration=0)
+            pyautogui.move(0, d, duration=0)
+
 def beep():
     if platform.system() == 'Windows':
         import winsound
         winsound.MessageBeep()
     else:
         os.system('\a')
+
+def nag():
+    beep()
+    shake_mouse()
 
 def create_icon_image(number, color):
     size = 33
@@ -57,9 +69,9 @@ def update_icon(icon, countdown, stop_event):
     else:
         if countdown != 0:
             set_icon(icon, 0, 'red')
-            beep()
+            nag()
             while cancellable_sleep(stop_event, NAGGING_INTERVAL_SEC):
-                beep()
+                nag()
         else:
             set_icon(icon, 0, 'white')
 
