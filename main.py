@@ -25,7 +25,8 @@ def create_icon_image(number, color):
     size = 33
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text((size / 2, size / 2 - 1), str(number), fill=color, anchor='mm', font_size=size - 2)
+    font_size = size - 2 if number <= 99 else 20
+    d.text((size // 2, size // 2 - 1), str(number), fill=color, anchor='mm', font_size=font_size)
     return img
 
 def set_icon(icon, value, color='cyan'):
@@ -105,7 +106,10 @@ def on_left_click(icon, item):
         last_click_time = now
 
 
-options = [pystray.MenuItem(str(i), on_select) for i in list(range(60, 10, -5)) + list(range(10, 0, -1))]
+options = [pystray.MenuItem(str(i), on_select) for i in
+            list(range(240, 60, -30))
+            + list(range(60, 10, -5))
+            + list(range(10, 0, -1))]
 menu = pystray.Menu(
     pystray.MenuItem('', on_left_click, default=True, visible=False),  # Invisible item to catch left clicks
     *options,
